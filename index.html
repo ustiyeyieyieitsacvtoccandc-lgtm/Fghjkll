@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>عيادة المطور - نظام إدارة العيادة الذكي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #1a5f7a;
+            --primary-dark: #0e3a4a;
+            --secondary-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --info-color: #3498db;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --text-primary: #2c3e50;
+            --text-secondary: #7f8c8d;
+            --border-radius: 15px;
+            --shadow: 0 5px 20px rgba(0,0,0,0.08);
+            --shadow-hover: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--bg-color);
+            color: var(--text-primary);
+            padding-bottom: 80px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+            border-radius: 0 0 30px 30px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header h1 {
+            font-size: 26px;
+            font-weight: 900;
+            margin-bottom: 5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .main-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            background: var(--card-bg);
+            padding: 10px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            font-family: 'Cairo';
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .form-card, .stats-card, .schedule-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-family: 'Cairo';
+        }
+
+        .upload-area {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+
+        #preview {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin: 15px auto;
+            display: none;
+            border: 3px solid var(--primary-color);
+        }
+
+        .btn-save, .btn-secondary {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            color: white;
+            font-family: 'Cairo';
+        }
+
+        .btn-save { background: var(--primary-color); }
+        .btn-secondary { background: var(--secondary-color); }
+
+        .patient-item {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-right: 6px solid var(--primary-color);
+            box-shadow: var(--shadow);
+        }
+
+        .patient-item img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .stat-number { font-size: 24px; font-weight: 900; color: var(--primary-color); }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 25px;
+            border-radius: 50px;
+            color: white;
+            display: none;
+            z-index: 1000;
+            font-weight: 600;
+        }
+
+        .schedule-item {
+            background: #f8f9fa;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            border-right: 4px solid var(--secondary-color);
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1><i class="fas fa-code"></i> عيادة المطور</h1>
+    <p>نظام إدارة العيادة الذكي</p>
+</div>
+
+<div class="main-container">
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('add')">إضافة مريض</button>
+        <button class="tab-btn" onclick="switchTab('list')">القائمة</button>
+        <button class="tab-btn" onclick="switchTab('stats')">إحصائيات</button>
+        <button class="tab-btn" onclick="switchTab('schedule')">المواعيد</button>
+    </div>
+
+    <div id="addTab" class="tab-content">
+        <div class="form-card">
+            <div class="upload-area" onclick="document.getElementById('patientPhoto').click()">
+                <i class="fas fa-camera fa-2x"></i>
+                <p>رفع صورة المريض</p>
+                <input type="file" id="patientPhoto" accept="image/*" style="display:none" onchange="previewImage(this)">
+                <img id="preview">
+            </div>
+            <div class="input-group">
+                <label>الاسم الكامل</label>
+                <input type="text" id="pName" placeholder="اسم المريض">
+            </div>
+            <div class="input-group">
+                <label>رقم الهاتف</label>
+                <input type="tel" id="pPhone" placeholder="07xxxxxxxx">
+            </div>
+            <div class="input-group">
+                <label>الحالة الصحية</label>
+                <select id="pCondition">
+                    <option value="جيد">جيد</option>
+                    <option value="تحت المراقبة">تحت المراقبة</option>
+                    <option value="حرج">حرج</option>
+                </select>
+            </div>
+            <button class="btn-save" onclick="savePatientData()">حفظ البيانات</button>
+        </div>
+    </div>
+
+    <div id="listTab" class="tab-content" style="display:none;">
+        <div id="patientsList"></div>
+    </div>
+
+    <div id="statsTab" class="tab-content" style="display:none;">
+        <div class="stats-card">
+            <div class="stats-grid">
+                <div class="stat-item"><div class="stat-number" id="totalPatients">0</div><div>إجمالي المرضى</div></div>
+                <div class="stat-item"><div class="stat-number" id="criticalCount">0</div><div>حالات حرجة</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="scheduleTab" class="tab-content" style="display:none;">
+        <div class="schedule-card">
+            <div class="input-group">
+                <label>اختر المريض</label>
+                <select id="schedulePatient"></select>
+            </div>
+            <div class="input-group">
+                <label>التاريخ والوقت</label>
+                <input type="datetime-local" id="scheduleDateTime">
+            </div>
+            <button class="btn-secondary" onclick="addAppointment()">تحديد موعد</button>
+        </div>
+        <div id="appointmentsList"></div>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+    let db;
+    let currentPhoto = "";
+
+    // Database Setup
+    const request = indexedDB.open("ClinicDB", 1);
+    request.onupgradeneeded = (e) => {
+        db = e.target.result;
+        db.createObjectStore("patients", { keyPath: "id", autoIncrement: true });
+        db.createObjectStore("appointments", { keyPath: "id", autoIncrement: true });
+    };
+    request.onsuccess = (e) => {
+        db = e.target.result;
+        loadPatients();
+        updateStats();
+    };
+
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tab + 'Tab').style.display = 'block';
+        event.target.classList.add('active');
+        if(tab === 'schedule') loadPatientsForSelect();
+    }
+
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                currentPhoto = e.target.result;
+                document.getElementById('preview').src = e.target.result;
+                document.getElementById('preview').style.display = 'block';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function savePatientData() {
+        const name = document.getElementById('pName').value;
+        if(!name) return showToast("الاسم مطلوب", "error");
+
+        const patient = {
+            name, 
+            phone: document.getElementById('pPhone').value,
+            condition: document.getElementById('pCondition').value,
+            photo: currentPhoto || "https://via.placeholder.com/60"
+        };
+
+        const tx = db.transaction("patients", "readwrite");
+        tx.objectStore("patients").add(patient);
+        tx.oncomplete = () => {
+            showToast("تم الحفظ", "success");
+            location.reload(); 
+        };
+    }
+
+    function loadPatients() {
+        const list = document.getElementById('patientsList');
+        list.innerHTML = "";
+        db.transaction("patients").objectStore("patients").openCursor().onsuccess = (e) => {
+            const cursor = e.target.result;
+            if (cursor) {
+                const div = document.createElement('div');
+                div.className = 'patient-item';
+                div.innerHTML = `
+                    <img src="${cursor.value.photo}">
+                    <div>
+                        <strong>${cursor.value.name}</strong><br>
+                        <small>${cursor.value.phone} | ${cursor.value.condition}</small>
+                    </div>
+                `;
+                list.appendChild(div);
+                cursor.continue();
+            }
+        };
+    }
+
+    function loadPatientsForSelect() {
+        const select = document.getElementById('schedulePatient');
+        select.innerHTML = "";
+        db.transaction("patients").objectStore("patients").openCursor().onsuccess = (e) => {
+            const cursor = e.target.result;
+            if (cursor) {
+                const opt = document.createElement('option');
+                opt.value = cursor.value.name;
+                opt.text = cursor.value.name;
+                select.appendChild(opt);
+                cursor.continue();
+            }
+        };
+    }
+
+    function addAppointment() {
+        const appointment = {
+            patient: document.getElementById('schedulePatient').value,
+            time: document.getElementById('scheduleDateTime').value
+        };
+        const tx = db.transaction("appointments", "readwrite");
+        tx.objectStore("appointments").add(appointment);
+        tx.oncomplete = () => {
+            showToast("تم تحديد الموعد", "success");
+            loadAppointments();
+        };
+    }
+
+    function loadAppointments() {
+        const list = document.getElementById('appointmentsList');
+        list.innerHTML = "";
+        db.transaction("appointments").objectStore("appointments").openCursor().onsuccess = (e) => {
+            const cursor = e.target.result;
+            if (cursor) {
+                const div = document.createElement('div');
+                div.className = 'schedule-item';
+                div.innerHTML = `<strong>${cursor.value.patient}</strong> - ${cursor.value.time}`;
+                list.appendChild(div);
+                cursor.continue();
+            }
+        };
+    }
+
+    function updateStats() {
+        let total = 0, critical = 0;
+        db.transaction("patients").objectStore("patients").openCursor().onsuccess = (e) => {
+            const cursor = e.target.result;
+            if (cursor) {
+                total++;
+                if(cursor.value.condition === 'حرج') critical++;
+                cursor.continue();
+            } else {
+                document.getElementById('totalPatients').innerText = total;
+                document.getElementById('criticalCount').innerText = critical;
+            }
+        };
+    }
+
+    function showToast(msg, type) {
+        const toast = document.getElementById('toast');
+        toast.innerText = msg;
+        toast.style.background = type === 'success' ? '#2ecc71' : '#e74c3c';
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', 3000);
+    }
+</script>
+</body>
+</html>
